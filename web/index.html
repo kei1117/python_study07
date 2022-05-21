@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>my translate</title>
+</head>
+
+<body>
+    <h1 class="my-5 text-center fw-light">my translate</h1>
+
+    <main class="container">
+        <form>
+            <div class="d-flex justify-content-between">
+                <div class="form-floating" style="width:45vw;">
+                    <select id="before-language" class="form-select floatingSelect"></select>
+                    <label for="floatingSelect">原文の言語</label>
+                </div>
+                <div class="d-flex align-items-center">
+                    <p class="mx-2 my-0 text-center">→</p>
+                </div>
+                <div class="form-floating" style="width:45vw;">
+                    <select id="after-language" class="form-select floatingSelect"></select>
+                    <label for="floatingSelect">翻文の言語
+                    </label>
+                </div>
+            </div>
+            <div class="form-floating mt-3">
+                <textarea class="form-control" placeholder="Leave a comment here" id="before-language-textarea"
+                    style="height: 150px" name="input-text"></textarea>
+                <label for="floatingTextarea2">テキストを入力</label>
+            </div>
+            <div class="form-floating">
+                <textarea class="form-control" placeholder="Leave a comment here" id="after-language-textarea"
+                    style="height: 150px" disabled readonly></textarea>
+                <label for="floatingTextarea2">翻訳</label>
+            </div>
+            <button type="button" id="translate-btn" class="mt-3 btn btn-primary">翻訳開始</button>
+        </form>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"
+        integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="/eel.js"></script>
+    <script>
+
+        $(function () {
+            //言語を定義しているjsonファイルを読み込み
+            $.getJSON('./language.json', () => {
+                console.log("実行");
+            })
+                .done(json => {
+                    console.log('jsonファイル読み込み成功', json);
+                    //セレクトボックス内にjsonファイルで読み込んだcodeをタグを生成する
+                    for (let i = 0; i < json.length; i++) {
+                        $('.floatingSelect').append(
+                            ` <option name="${json[i].code}" value="${json[i].code}">${json[i].language}</option>`
+                        )
+                    }
+                    //english→japaneseの翻訳をデフォルト表示にする
+                    $('#before-language > option[name="en"]').prop("selected", true)
+                    $('#after-language > option[name="ja"]').prop("selected", true)
+                })
+                .fail(() => {
+                    console.log("jsonファイル読み込みエラー")
+                })
+
+            //翻訳開始ボタン押下時の処理
+            $('#translate-btn').on('click', async () => {
+                let inputWord = $('#before-language-textarea').val();
+
+                //テキストエリアが未入力であればアラート
+                if (inputWord.trim().length == 0) {
+                    alert("テキストを入力してください")
+                    return;
+                }
+
+                //翻訳前と後の言語を取得
+                let beforeLanguage = $("#before-language").val()
+                let afterLanguage = $("#after-language").val()
+
+                //pythonへ情報を飛ばす
+                let changeWord = await eel.translate(inputWord, beforeLanguage, afterLanguage)();
+                alert('翻訳完了！！')
+                $('#after-language-textarea').val(changeWord);
+            });
+        });
+    </script>
+</body>
+
+
+
+</html>
